@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.react.GuildMessageReactionAddEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
+import java.util.EnumSet;
+
 public class MessageListener extends ListenerAdapter {
 
     public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event) {
@@ -33,10 +35,15 @@ public class MessageListener extends ListenerAdapter {
                 if (t.getName().equalsIgnoreCase("ticket-" + member.getId())) return;
             }
 
-            TextChannel textChannel = guild.createTextChannel("ticket-" + member.getId(), category).complete();
-            textChannel.createPermissionOverride(member)
-                    .setAllow(Permission.VIEW_CHANNEL, Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_EXT_EMOJI)
-                    .queue();
+            /* Cria o canal privado */
+            TextChannel textChannel = guild.createTextChannel("ticket-" + member.getId(), category)
+                    /* Aqui seta as permissoes para o membro */
+                    .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_WRITE, Permission.MESSAGE_READ, Permission.MESSAGE_HISTORY, Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_EXT_EMOJI), null)
+                    /* Aqui ele pega a role @everyone e tira a permissão de ver o canal */
+                    .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL)).complete();
+
+            /* Mensagem que o bot irá enviar, marcando o usuário que usou o comando*/
+            textChannel.sendMessage(member.getAsMention() + "**Ticket criado com sucesso!**").queue();
         }
     }
 }
